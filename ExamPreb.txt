@@ -1,0 +1,445 @@
+1 - Why would you consider a Scripting Language as JavaScript as your Backend Platform.
+
+A great thing about JavaScript is that, not only you can use the same language for
+client and server side, but you also can use JSON, a subset of the
+"JavaScript Object Notation", for transport on the network and to store data in NoSQL
+database. Databases which as CouchDB, MongoDB, Riak, or wakandaDB also works with
+JavaScript instead of SQL. It is fast to implement features managing formats changing
+ every time, and it is also fast to test and update the application. The use of NodeJs
+ and Express makes it easy to extend and update the application. Therefore is the use
+ of Javascript as a backend also very flexible.
+ ----------------------------------------------------------------------
+ 2 - Explain Pros & Cons in using Node.js + Express to implement your Backend compared
+ to a strategy using for example Java/JAX-RS/Tomcat
+
+Fordele:
+Du kan skrive kode der virker både på frontend(browser) og backend(server)
+Node.js er single trådet med ikke blokerende serverkald - gør det nemt at lave asynkrone kald
+Node.js bruger event loop til at håndtere alle opgaver hvor bl.a. java og C# spinder tråde
+der optager meget hukommelse.
+Det er ikke nødvendigt at konvertere fra json og til json som det f. eks. var i java
+Node er dermed effektivt i forhold til plads i hukommelsen men samtidig også sværere at
+programmere
+
+fra https://www.toptal.com/nodejs/why-the-hell-would-i-use-node-js:
+In one sentence: Node.js shines in real-time web applications employing push technology
+ over websockets. What is so revolutionary about that? Well, after over 20 years of
+ stateless-web based on the stateless request-response paradigm, we finally have web
+  applications with real-time, two-way connections, where both the client and server can
+  initiate communication, allowing them to exchange data freely. This is in stark contrast
+  to the typical web response paradigm, where the client always initiates communication.
+   Additionally, it’s all based on the open web stack (HTML, CSS and JS) running over the
+standard port 80.
+
+Ulemper:
+Nyere sprog end Java - dvs java er mere sikkert at bruge da det er testet gennem 20 år
+JavaScript may provide you with fast code, but this is only the reality if written correct.
+Java's Web servers are multi-threaded multiple threads may take time and memory, but it
+pays off. If one thread deadlocks, the others continue. If one thread requires longer
+computation, the other threads aren’t starved for attention (usually). If one Node.js
+request runs too slowly, everything slows down. There's only one thread in Node.js,
+and it will get to your event when it's good and ready. It may look superfast, but
+underneath it uses the same architecture as a one window post office in the week before
+Christmas....men dette afhænger af udvikleren - det er væsentligt at sørge for, at der
+ikke optræder exceptions i eventloopet(på overfladen)
+Using Node.js with a relational database should be very difficult.
+---------------------------------------------------------------------------------------
+3 - Node.js uses a Single Threaded Non-blocking strategy to handle asynchronous task.
+ Explain strategies to implement a Node.js based server architecture that still could
+ take advantage of a multi-core Server.
+
+ Node.JS can fire up child processes when the load gets big, meaning that you have
+ multiple single threaded tasks running. Node.JS already comes with this built in the
+ Cluster module, which makes it able to spawn multiple instances of a Node.JS threads
+ and use a load balancer to distribute the incoming request to a certain Node.JS thread.
+ A strategy to handle these CPU intensive computations could be the use of a module that
+ enables “clustering” Node.js which  runs as many dedicated single threaded processes
+ under a master Node.js process. In Node.js clustering, the Node.js server consists of
+ multiple processes executing on the same processor, typically one for each core.
+ You start the main process called the master process. Master process starts and
+ manages other processes called worker processes which do the actual work of handling
+ incoming requests. Although using a cluster module sounds complex in theory, it is
+ very straightforward to implement. To start using it, you have to include it in
+ your Node.js application:
+
+ var cluster = require('cluster);
+
+ A cluster module executes the same Node.js process multiple times. Therefore, the first
+ thing you need to do is to identify what portion of the code is for the master process
+ and what portion is for the workers. The cluster module allows you to identify the
+ master process as follows:
+
+ if(cluster.isMaster) { ... }
+
+ The master process is the process you initiate, which in turn initialize the workers.
+ To start a worker process inside a master process, we’ll use the fork() method:
+
+ cluster.fork();
+
+ EXAMPLE:
+ var cluster = require('cluster');
+ var http = require('http');
+ var numCPUs = 4;
+
+ if (cluster.isMaster) {
+     for (var i = 0; i < numCPUs; i++) {
+         cluster.fork();
+ }
+ } else {
+     http.createServer(function(req, res) {
+         res.writeHead(200);
+         res.end('process ' + process.pid + ' says hello!');
+     }).listen(3000);
+ }
+----------------------------------------------------------------------------------
+
+4 - Explain, using relevant examples, concepts related to the
+testing a REST-API using Node/JavaScript + relevant packages
+
+look up question 8
+----------------------------------------------------------------------------------
+5 - Explain, using relevant examples, the Express concept; middleware.
+
+Middleware er funktioner der skal udføres på et request/response objekt.
+Vigtigt at de ligger i den rigtige rækkefølge i koden - da de eksekveres i den rækkefølge
+de ligger.
+Middeleware funktioner har adgang til request (req), response (res) og next() objektet
+hvis den igangværende middleware funktion ikke giver det endelige request response skal
+next kaldes så det næste led i kæden af middleware kommer i spil....eller bliver det
+hængende i luften.
+Flere typer middleware:
+Application-level middleware, Router-level middleware, Error-handling middleware (NOT EXPLAINED), Built-in middleware (NOT EXPLAINED), Third-party middleware
+
+Application middleware:
+This example shows a middleware function with no mount path.
+The function is executed every time the app receives a request.
+var app = express();
+app.use(function (req, res, next) {
+console.log('Time:', Date.now());
+next();
+});
+
+This example shows a middleware function mounted on the /user/:id path.
+The function is executed for any type of HTTP request on the /user/:id path.
+app.use('/user/:id', function (req, res, next) {
+console.log('Request Type:', req.method);
+next();
+});
+
+Here is an example of loading a series of middleware functions at a mount point, with a
+mount path. It illustrates a middleware sub-stack that prints request info for any type
+of HTTP request to the /user/:id path.
+
+app.use('/user/:id', function(req, res, next) {
+console.log('Request URL:', req.originalUrl);
+next();
+}, function (req, res, next) {
+console.log('Request Type:', req.method);
+next();
+});
+Router-level middleware:
+Router-level middleware works in the same way as application-level middleware,
+except it is bound to an instance of express.Router().
+var router = express.Router();
+
+The following example code replicates the middleware system
+that is shown above for application-level middleware, by using router-level middleware:
+var app = express();
+var router = express.Router();
+
+a middleware function with no mount path. This code is executed for every request to the router
+router.use(function (req, res, next) {
+console.log('Time:', Date.now());
+next();
+});
+
+Thirt party middleware:
+Use third-party middleware to add functionality to Express apps.
+install the Node.js module for the required functionality,
+then load it in your app at the application level or at the router level.
+The following example illustrates installing and loading the cookie-parsing middleware
+function cookie-parser.
+
+//$ npm install cookie-parser
+var express = require('express');
+var app = express();
+var cookieParser = require('cookie-parser');
+
+// load the cookie-parsing middleware
+app.use(cookieParser());
+
+(ABOUT THE 'NEXT()'
+next() call inside a middleware invokes the next middleware or route handler depending
+on whichever is declared next. But next() call inside a route handler invokes the next route handler only. If there is a middleware next then it’s skipped. Therefore middlewares must be declared above all route handlers.)
+-----------------------------------------------------------------------------
+6 - Explain, using relevant examples, how to implement sessions, and the legal implications
+of doing this.
+
+•	HTTP cookies.
+•	Query string parameters, for example: /index.php?session_id=some_unique_session_code.
+•	Hidden variables within web forms
+A user's session for a website exists in temporary memory only while the user is reading
+and navigating the website. Web browsers normally delete session cookies when the user
+closes the browser.
+
+god side med info:
+https://stormpath.com/blog/everything-you-ever-wanted-to-know-about-node-dot-js-sessions/
+
+Implementing session
+Hvis en bruger logger ind eller registrerer sig på en side holder vi denne information i
+session. Til dette brug har vi cookies der gemmer brugerinformationen i en fil i deres
+browser. Det smarte er, at mens brugeren besøger siden bliver denne information sendt med
+til serveren ved hver request brugeren laver på siden - på denne måde ved vi hvem han er.
+
+app.use(session({secret:'secret_3162735', saveUninitialized:true, resave:true}));
+
+The secret property is used to sign the session ID cookie. This can be either a string
+for a single secret, or an array of multiple secrets. The saveUninitialized property
+forces a session that is "uninitialized" to be saved to the store. A session is
+uninitialized when it is new but not modified. Choosing false is useful for implementing
+login sessions, reducing server storage usage, or complying with laws that require
+permission before setting a cookie. Choosing false will also help with race conditions
+where a client makes multiple parallel requests without a session.
+The default value is true, but using the default has been deprecated, as the default will
+change in the future. The resave property forces the session to be saved back to the
+session store, even if the session was never modified during the request.
+
+eksempel fra vores opgaver er:
+projekt - serversidehandlebar - i app.js
+var session = require("express-session"); // require module
+app.use(session({secret:'secret_3162735', saveUninitialized:true, resave: true})); //create session cookie
+//middleware to check whether user is logged in, trying to logg in or not logged in
+app.use(function(req, res,next){
+
+  var sess = req.session
+  if(sess.userName)
+  {
+
+    return next();
+  }
+  else if(req.body.userName)
+  {
+    sess.userName = req.body.userName;
+    return res.redirect("/")
+  }
+  else
+  {
+    req.url = "/login";
+    return next();
+  }
+})
+i dette eksempel bruger vi session til at holde øje med om en bruger er logget ind.
+if sætningen tjekker om variablen sess har et userName. Hvis true - så videre til næste
+middleware. else if requestobjektet har et username i body(betyder at brugeren har tastet
+ind i login formen og submittet) så redirecter vi til siden og i sidste else redirecter
+vi til login siden da brugeren ikke er logget ind og ikke er i gang med at logge ind.
+
+Legal implications
+I vores konkrete tilfælde bliver det ikke nødvendigt at bede om tilladelse til at
+anvende cookies - idet vi kun bruger informationen til at holde fast i brugeren så
+længe han anvender vores hjemmesider...vi gemmer ikke adfærd
+
+Generelt:
+Hvis hjemmesiden skal gemme informationer på brugerens computer skal brugeren gøres
+opmærksom på dette og acceptere lagringen. Der er dog undtagelser:
+
+However, some cookies are exempt from this requirement. Consent is not required if the
+cookie is:
+•	used for the sole purpose of carrying out the transmission of a communication, and
+•	strictly necessary in order for the provider of an information society service
+    explicitly required by the user to provide that service.
+    Cookies clearly exempt from consent according to the EU advisory body on data
+    protection- WP29  include:
+•	user input cookies (session-id) such as first party cookies to keep track of the
+    user's input when filling online forms, shopping carts, etc., for the duration of
+    a session or persistent cookies limited to a few hours in some cases
+•	authentication cookies, to identify the user once he has logged in, for the
+    duration of a session
+•	user centric security cookies, used to detect authentication abuses, for a limited
+    persistent duration
+•	multimedia content player cookies, used to store technical data to play back video
+    or audio content, for the duration of a session
+•	load balancing cookies, for the duration of session
+•	user interface customisation cookies such as language or font preferences, for the
+    duration of a session (or slightly longer)
+•	third party social plug in content sharing cookies, for logged in members of a
+    social network.
+    ----------------------------------------------------------------------
+    7 - Compare the express strategy toward (server side) templating with the one you used with
+    Java on second semester.
+
+    2. semester : Model-->Controller --> Servlet – JSP
+    vi brugte jsp og servletter til at præsentere og flytte data mellem siderne
+
+    4. semester : Model --> Controller/Router --> Jade/EJS/Handlebar etc
+    Express gør det samme med view engine. Express compiler ikke html siderne
+
+    Express works a little bit different than .jsp and servlets, express does not compile
+    the html that a client request's but acts a little like a SPA using AngularJS and a
+    Rest-API. In express we send back the data that is to be shown on the page, but it
+    is rendered client side.
+
+    Using Jade, EJS or Handlebars is much equal to how we used JSP on second semester.
+    They all have some different syntax, but all of them can be used to render a html
+    page, based on some logical expressions. In JSP we used Java to write the logical
+    behavior and with the other ones we use JavaScript. That means when we used Java for
+    our backend, we had to use JSP, with JavaScript we have a lot of options.
+    -------------------------------------------------------------------------------
+    8 - Explain, using a relevant examples, your strategy for implementing a REST-API
+     with Node/Express and show how you can "test" all the four CRUD operations
+     programmatically using for example the Request package.
+
+
+base setup:
+// call the packages I need
+var express    = require('express');
+var app        = express();
+var bodyParser = require('body-parser');
+
+// configure app to use bodyParser()
+// this will let me get the data from a POST rendered in the req.body object
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+
+Register all the routes or endpoints. By using this statement all the routes will
+be prefixed with /api.
+
+I can make a get endpoint which returns a random joke like this.
+router.get('/joke/random', function(req,res,next){
+    res.json({joke : jokes.getRandomJoke()});
+});
+I am sending back information as JSON data because this is standard for an API and will
+help the people using the API to use the data.
+To store a new joke I can make an endpoint or route like this and return a JSON message
+back.
+
+router.post('/storejoke', function(req, res){
+    jokes.addJoke(req.body.joke);
+    res.json({Message: "New Joke succesfully stored"});
+});
+
+Updating a joke can be done like this:
+router.put('/joke/:joke_id', function(req, res){
+    var id = req.params.joke_id;
+    jokes.allJokes[id] = req.body.joke;
+    res.json({message: "Joke with id: " + id + " was succesfully updated"});
+});
+And finally a delete endpoint could be done like this:
+router.delete('/joke/:joke_id', function(req, res){
+    var id = req.params.joke_id;
+    jokes.removeJoke(id);
+    res.json({message: "Joke with id: " + id + " was succesfully removed"});
+});
+To test all these endpoints can I use the request package like this:
+var request = require("request");
+
+var getRandom = {
+    url: "http://localhost:3000/api/joke/random", method: "GET",
+    json : true
+};
+
+var getAll = {
+    url: "http://localhost:3000/api/jokes", method: "GET",
+    json : true
+};
+
+var storeJoke = {
+    url: "http://localhost:3000/api/storejoke", method: "POST",
+    json : true,
+    body : {joke : "I'm a joke"}
+};
+
+var updateJoke = {
+    url: "http://localhost:3000/api/joke/3", method: "PUT",
+    json : true,
+    body : {joke : "I'm a updated joke"}
+};
+
+var deleteJoke = {
+    url: "http://localhost:3000/api/joke/2", method: "DELETE",
+    json: true
+};
+
+request(getRandom,function(error,res,body){
+    console.log(body.joke); //Assume the service returns the a random Joke
+});
+
+request(getAll,function(error,res,body){
+    console.log(body.allJokes); //Assume the service returns an array with all Jokes
+});
+
+request(storeJoke,function(error,res,body){
+    console.log(body.newJoke); //Assume the service returns the new Joke
+});
+
+request(updateJoke,function(error,res,body){
+    console.log(body.message); //Assume the service returns an update message
+});
+
+request(deleteJoke,function(error,res,body){
+    console.log(body.message); //Assume the service returns an remove message
+});
+This kind of testing is similar to the use of POSTMAN where you can test the request
+and response. That means you cannot make an assert
+--------------------------------------------------------------
+9 - Explain, using relevant examples, about testing JavaScript code, relevant packages
+ (Mocha etc.) and how to test asynchronous code.
+
+  Testframeworket Mocha er ideelt til test af javascript fordi det er nemt at lave test uden at ændre på hverken kode eller data. Vi kan sætte en fixed verden hvor vi ikke ændrer på værdier i databaser osv.
+  frameworket har assertion out of the box - men der er mange andre og bedre assertions libraries - vi har arbejdet med chai
+
+  eksempel på test af kode der ikke er asynkront
+  Projekt MochaDemo, test, testModule - test 1
+
+  eksempel på test af kode der er asynkront
+  Projekt MochaDemo, test, testModule - test 2
+--------------------------------------------------------------------------------------
+10 - Explain, using relevant examples, different ways to mock out databases,
+ HTTP-request etc.
+
+i eksemplet skal vi ramme en wiki page med en http request
+var https = require("https");
+module.exports = { printName(person){
+return '${person.last}, ${person.first}';
+},
+loadWiki(person, callback){
+var url = 'https://wikipedia.org/wiki${person.first}_{person.last}';
+https.get(url, function(res){ var body = "";
+res.setEncoding("UTF-8");
+res.on("end", function(){ body += chunk;
+});
+res.on("end", function(){
+callback(body);
+});
+});
+test af denne:
+
+describe("loadWiki()", function(){
+before(function){
+nock("https://en.wikipedia.org")
+.get("/wiki/Abraham_Lincoln")
+.reply(200, "Mock Abraham Lincoln Page");
+});
+it("Load Abraham Lincoln' s wikipedia Page" function(done){
+tools.loadWiki({first: "Abraham", last: "Lincoln"}, function(html){
+expect(html).to.be.equal("Mock Abraham Lincoln Page");
+done();
+ });
+ });
+ });
+
+test hvor vi mocker http requesten:
+describe("loadWiki()", function(){
+before(function){
+ nock("https://en.wikipedia.org")
+ .get("/wiki/Abraham_Lincoln")
+ .reply(200, "Mock Abraham Lincoln Page");
+  });
+  it("Load Abraham Lincoln' s wikipedia Page" function(done){
+  tools.loadWiki({first: "Abraham", last: "Lincoln"}, function(html){
+  expect(html).to.be.equal("Mock Abraham Lincoln Page");
+  done();
+     });
+    });
+   });
+
