@@ -43,6 +43,31 @@ underneath it uses the same architecture as a one window post office in the week
 Christmas....men dette afhænger af udvikleren - det er væsentligt at sørge for, at der
 ikke optræder exceptions i eventloopet(på overfladen)
 Using Node.js with a relational database should be very difficult.
+
+Sammenlignet med Java/JAX-RS/TOMCA
+JAX-RS stands for JAVA API for RESTful Web Services. JAX-RS is a JAVA based programming language API and specification to provide support for created RESTful Webservices. 
+
+Java/JAX-RS/Tomcat
+
+(+) True object oriented language -> increased readability and somewhat easier to maintain a large codebase.
+(+) Easier to debug -> The compiler will, by default, give back more useful information about the error.
+(+) Maturity -> larger workforce (short term?), proven and stable server technology.
+(-) Lots of configuration up front -> Tomcat is big and heavy and comes with a lot of features (that you might not ever use).
+(-) Threads are memory intensive and can be difficult to work with.
+
+JavaScript/Node.js/Express
+
+(+) Suited for apps -> A lot of IO, chat- web rest- servers, streaming servers, games
+(+) One language ->
+(+) Refer to 1)
+(+) Lightweight -> Barebones from the outset, but add functionality as you go with npm.
+(+) Modern & Sexy -> get a lot of functionality for "free" using npm to get the latest and greatest from an active community.
+(+) Non blocking API -> easier to use than threads.
+(-) Not suited for apps -> Heavy CPU intensive applications.
+(-) Chaotic code -> harder to read code, especially when being sloppy (see first pro from java)
+(-) Not a completely matured technology (from slides: Node.js Intro)
+(-) New packages pops up all the time (from slides: Node.js Intro)
+(-) Unhandled errors will shutdown the server (from slides: Node.js Intro)
 ---------------------------------------------------------------------------------------
 3 - Node.js uses a Single Threaded Non-blocking strategy to handle asynchronous task.
  Explain strategies to implement a Node.js based server architecture that still could
